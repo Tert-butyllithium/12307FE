@@ -70,7 +70,7 @@
       </v-btn>
       <v-toolbar-title v-text="title" />
       <v-spacer />
-      <v-btn v-show="islogin" icon @click="loginout">
+      <v-btn v-show="islogin && !isloginLoading" icon @click="loginout">
         <v-icon>
           mdi-account
         </v-icon>
@@ -78,7 +78,7 @@
           Login
         </div> -->
       </v-btn>
-      <v-btn v-show="!islogin" icon @click="loginout">
+      <v-btn v-show="!islogin && !isloginLoading" icon @click="loginout">
         Login
       </v-btn>
     </v-app-bar>
@@ -111,10 +111,11 @@ export default {
   name: 'App',
   data() {
     return {
-      islogin: true,
+      islogin: false,
       clipped: false,
       drawer: false,
       fixed: false,
+      isloginLoading: true,
       items: [
         {
           icon: 'mdi-apps',
@@ -161,11 +162,15 @@ export default {
     axios
       .get(url)
       .then((response) => {
-        this.islogin = response.data.errcode === 1
+        this.islogin = true
+        // console.log(response)
       })
-      .catch(() => {
+      // eslint-disable-next-line handle-callback-err
+      .catch((error) => {
+        // console.log(error)
         this.islogin = false
       })
+    this.isloginLoading = false
     // console.log('awsl')
   },
   methods: {
@@ -179,8 +184,8 @@ export default {
         '/api/login?username=' + this.account + '&password=' + this.password
       axios.get(url).then((response) => {
         if (response.status === 200) {
-          localStorage.setItem('token', response.data.token)
-          localStorage.setItem('username', this.account)
+          // localStorage.setItem('token', response.data.token)
+          // localStorage.setItem('username', this.account)
           this.account = ''
           this.password = ''
           // this.login_success = true
@@ -193,10 +198,7 @@ export default {
       })
     },
     loginout() {
-      if (
-        localStorage.getItem('token') === undefined ||
-        localStorage.getItem('token') == null
-      ) {
+      if (!this.islogin) {
         this.login_dialog = true
       } else if (confirm('Are you sure to logout')) {
         // console.log(localStorage.getItem('token'))
@@ -210,14 +212,14 @@ export default {
         window.location.reload(false)
       }
     },
-    logined() {
-      const url = '/api/status'
-      axios.get(url).then((response) => {
-        return response.data.errcode === 1
-      })
+    // logined() {
+    //   const url = '/api/status'
+    //   axios.get(url).then((response) => {
+    //     return response.data.errcode === 1
+    //   })
 
-      return false
-    },
+    //   return false
+    // },
     showLoginDialog() {
       this.login_dialog = true
     }
