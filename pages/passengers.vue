@@ -183,8 +183,8 @@ export default {
     deleteItem(item) {
       const index = this.desserts.indexOf(item)
       if (confirm('Are you sure you want to delete this item?')) {
-        const url = '/api/deletepassenger?passenger_id=' + index
-        axios.get(url).response(() => {
+        const url = '/api/deletepassenger?passenger_id=' + item.id
+        axios.get(url).then(() => {
           this.desserts.splice(index, 1)
         })
       }
@@ -202,7 +202,7 @@ export default {
       let url
       if (this.editedIndex > -1) {
         Object.assign(this.desserts[this.editedIndex], this.editedItem)
-        url = 'api/editpassenger?id=' + this.editedIndex + '&'
+        url = 'api/editpassenger?id=' + this.editedItem.id + '&'
       } else {
         this.desserts.push(this.editedItem)
         url = '/api/addpassenger?'
@@ -214,7 +214,7 @@ export default {
         this.editedItem.idcard +
         '&phone=' +
         this.editedItem.phone
-      axios.get(url).response(() => {
+      axios.get(url).then((response) => {
         this.close()
       })
     }
