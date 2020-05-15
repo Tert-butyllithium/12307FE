@@ -1,5 +1,38 @@
 <template>
   <v-app dark>
+    <v-dialog v-model="login_dialog" persistent max-width="500px">
+      <v-card>
+        <v-toolbar dark color="primary">
+          <v-toolbar-title></v-toolbar-title>
+          <v-spacer>Login</v-spacer>
+          <v-tooltip bottom></v-tooltip>
+        </v-toolbar>
+        <v-card-text>
+          <v-form>
+            <v-text-field
+              v-model="account"
+              prepend-icon="person"
+              name="login"
+              label="Account"
+              type="text"
+            ></v-text-field>
+            <v-text-field
+              id="password"
+              v-model="password"
+              prepend-icon="lock"
+              name="password"
+              label="Password"
+              type="password"
+            ></v-text-field>
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="normal" @click="login_dialog = false">Cancel</v-btn>
+          <v-btn color="primary" @click="login">Login</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-navigation-drawer
       v-model="drawer"
       :mini-variant="miniVariant"
@@ -37,8 +70,15 @@
       </v-btn>
       <v-toolbar-title v-text="title" />
       <v-spacer />
-      <v-btn icon @click.stop="rightDrawer = !rightDrawer">
-        <v-icon>mdi-menu</v-icon>
+      <v-btn icon @click="loginout">
+        <div v-if="logined">
+          <v-icon>
+            mdi-account
+          </v-icon>
+        </div>
+        <div v-else>
+          Login
+        </div>
       </v-btn>
     </v-app-bar>
     <v-content>
@@ -46,7 +86,7 @@
         <nuxt />
       </v-container>
     </v-content>
-    <v-navigation-drawer v-model="rightDrawer" :right="right" temporary fixed>
+    <!-- <v-navigation-drawer v-model="rightDrawer" :right="right" temporary fixed>
       <v-list>
         <v-list-item @click.native="right = !right">
           <v-list-item-action>
@@ -57,7 +97,7 @@
           <v-list-item-title>Switch drawer (click me)</v-list-item-title>
         </v-list-item>
       </v-list>
-    </v-navigation-drawer>
+    </v-navigation-drawer> -->
     <v-footer :fixed="fixed" app>
       <span>&copy; {{ new Date().getFullYear() }}</span>
     </v-footer>
@@ -65,6 +105,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 export default {
   data() {
     return {
@@ -81,12 +122,82 @@ export default {
           icon: 'mdi-chart-bubble',
           title: 'Inspire',
           to: '/inspire'
+        },
+        {
+          icon: 'mdi-train',
+          title: 'Ticket Purchase',
+          to: '/purchase'
+        },
+        {
+          icon: 'mdi-cart',
+          title: 'Order Management',
+          to: '/order'
+        },
+        {
+          icon: 'mdi-account-multiple',
+          title: 'Passenger management',
+          to: '/passengers'
         }
       ],
       miniVariant: false,
       right: true,
       rightDrawer: false,
-      title: 'Vuetify.js'
+      title: '12307 Railway ticketing system',
+      account: '',
+      password: '',
+      login_dialog: false
+    }
+  },
+  computed: {
+    logined() {
+      // if (
+      //   localStorage.getItem('token') === undefined ||
+      //   localStorage.getItem('token') == null
+      // ) {
+      //   return false
+      // }
+      return true
+    }
+  },
+  methods: {
+    loginfailed() {
+      alert('Wrong user name or password')
+      this.account = ''
+      this.password = ''
+    },
+    login() {
+      const url =
+        '/api/login?username=' + this.account + '&password=' + this.password
+      axios.get(url).then((response) => {
+        if (response.status === 200) {
+          localStorage.setItem('token', response.data.token)
+          localStorage.setItem('username', this.account)
+          this.account = ''
+          this.password = ''
+          // this.login_success = true
+          this.login_dialog = false
+          alert('Login successful')
+        } else {
+          this.loginfailed()
+        }
+      })
+    },
+    loginout() {
+      if (
+        localStorage.getItem('token') === undefined ||
+        localStorage.getItem('token') == null
+      ) {
+        this.login_dialog = true
+      } else if (confirm('Are you sure to logout')) {
+        // console.log(localStorage.getItem('token'))
+        const url = '/api/logout'
+        // axios.post(url, {
+        //   account: localStorage.getItem('account')
+        // })
+        axios.get(url)
+        localStorage.clear()
+        alert('Logout successful')
+      }
     }
   }
 }

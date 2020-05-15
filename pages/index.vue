@@ -84,8 +84,8 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <!-- <v-btn color="primary" nuxt to="/inspire">Continue</v-btn> -->
-          <v-btn color="primary" @click="loginout"> Log In/ Log Out</v-btn>
+          <v-btn color="primary" nuxt to="/inspire">Continue</v-btn>
+          <!-- <v-btn color="primary" @click="loginout"> Log In/ Log Out</v-btn> -->
         </v-card-actions>
       </v-card>
     </v-flex>
@@ -93,7 +93,6 @@
 </template>
 
 <script>
-import axios from 'axios'
 import Logo from '~/components/Logo.vue'
 import VuetifyLogo from '~/components/VuetifyLogo.vue'
 
@@ -108,50 +107,6 @@ export default {
     dialog: false,
     backend: 'http://sh.wtd2.top:81'
     // login_success: window.localStorage.getItem('token') !== undefined
-  }),
-  methods: {
-    loginfailed() {
-      alert('用户名或密码错误')
-      this.account = ''
-      this.password = ''
-    },
-    login() {
-      const url =
-        this.backend +
-        '/api/login?username=' +
-        this.account +
-        '&password=' +
-        this.password
-      axios.get(url).then((response) => {
-        if (response.status === 200) {
-          localStorage.setItem('token', response.data)
-          localStorage.setItem('account', this.account)
-          this.account = ''
-          this.password = ''
-          // this.login_success = true
-          this.dialog = false
-          alert('登录成功')
-        } else {
-          this.loginfailed()
-        }
-      })
-    },
-    loginout() {
-      if (
-        localStorage.getItem('token') === undefined ||
-        localStorage.getItem('token') == null
-      ) {
-        this.dialog = true
-      } else if (confirm('确定要注销吗')) {
-        // console.log(localStorage.getItem('token'))
-        const url = 'http://localhost:8080/cs307/logout'
-        axios.post(url, {
-          account: localStorage.getItem('account')
-        })
-        localStorage.clear()
-        alert('注销成功')
-      }
-    }
-  }
+  })
 }
 </script>
