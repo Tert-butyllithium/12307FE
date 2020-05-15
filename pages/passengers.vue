@@ -15,6 +15,7 @@
               :headers="headers"
               :items="desserts"
               :search="search"
+              :loading="dataLoading"
               sort-by="Name"
               class="elevation-1"
             >
@@ -104,9 +105,10 @@
 <script>
 import axios from 'axios'
 export default {
-  // inject: ['dialog'],
+  inject: ['showLoginDialog'],
   data: () => ({
     search: '',
+    dataLoading: true,
     dialog: false,
     headers: [
       {
@@ -150,28 +152,26 @@ export default {
     }
   },
 
-  created() {
+  mounted() {
     this.initialize()
   },
 
   methods: {
     initialize() {
-      this.desserts = ['login_dialog']
+      // this.desserts = []
       const url = '/api/passenger'
-      axios.get(url).then((response) => {
-        if (response.status === 200) {
-          // localStorage.setItem('token', response.data.token)
-          // localStorage.setItem('username', this.account)
-          // this.account = ''
-          // this.password = ''
-          // // this.login_success = true
-          // this.dialog = false
-          // alert('Login successful')
+      axios
+        .get(url)
+        .then((response) => {
           this.desserts = response.data.result
-        } else {
-          this.login_dialog = true
-        }
-      })
+          this.dataLoading = false
+        })
+        .catch((error) => {
+          // console.log(error.response.status)
+          if (error.response.status === 401) {
+            this.showLoginDialog()
+          }
+        })
     },
 
     editItem(item) {

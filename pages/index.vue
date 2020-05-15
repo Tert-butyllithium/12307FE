@@ -1,37 +1,5 @@
 <template>
   <v-layout column justify-center align-center>
-    <v-dialog v-model="dialog" persistent max-width="500px">
-      <v-card>
-        <v-toolbar dark color="primary">
-          <v-toolbar-title></v-toolbar-title>
-          <v-spacer>Log In</v-spacer>
-          <v-tooltip bottom></v-tooltip>
-        </v-toolbar>
-        <v-card-text>
-          <v-form>
-            <v-text-field
-              v-model="account"
-              prepend-icon="person"
-              name="login"
-              label="Account"
-              type="text"
-            ></v-text-field>
-            <v-text-field
-              id="password"
-              v-model="password"
-              prepend-icon="lock"
-              name="password"
-              label="Password"
-              type="password"
-            ></v-text-field>
-          </v-form>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" @click="login">Log In</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
     <v-flex xs12 sm8 md6>
       <div class="text-center">
         <logo />

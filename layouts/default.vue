@@ -70,15 +70,16 @@
       </v-btn>
       <v-toolbar-title v-text="title" />
       <v-spacer />
-      <v-btn icon @click="loginout">
-        <div v-if="logined">
-          <v-icon>
-            mdi-account
-          </v-icon>
-        </div>
-        <div v-else>
+      <v-btn v-show="islogin" icon @click="loginout">
+        <v-icon>
+          mdi-account
+        </v-icon>
+        <!-- <div v-else>
           Login
-        </div>
+        </div> -->
+      </v-btn>
+      <v-btn v-show="!islogin" icon @click="loginout">
+        Login
       </v-btn>
     </v-app-bar>
     <v-content>
@@ -107,8 +108,10 @@
 <script>
 import axios from 'axios'
 export default {
+  name: 'App',
   data() {
     return {
+      islogin: true,
       clipped: false,
       drawer: false,
       fixed: false,
@@ -148,16 +151,22 @@ export default {
       login_dialog: false
     }
   },
-  computed: {
-    logined() {
-      // if (
-      //   localStorage.getItem('token') === undefined ||
-      //   localStorage.getItem('token') == null
-      // ) {
-      //   return false
-      // }
-      return true
+  provide() {
+    return {
+      showLoginDialog: this.showLoginDialog
     }
+  },
+  mounted() {
+    const url = '/api/status'
+    axios
+      .get(url)
+      .then((response) => {
+        this.islogin = response.data.errcode === 1
+      })
+      .catch(() => {
+        this.islogin = false
+      })
+    // console.log('awsl')
   },
   methods: {
     loginfailed() {
@@ -177,6 +186,7 @@ export default {
           // this.login_success = true
           this.login_dialog = false
           alert('Login successful')
+          window.location.reload(false)
         } else {
           this.loginfailed()
         }
@@ -197,7 +207,19 @@ export default {
         axios.get(url)
         localStorage.clear()
         alert('Logout successful')
+        window.location.reload(false)
       }
+    },
+    logined() {
+      const url = '/api/status'
+      axios.get(url).then((response) => {
+        return response.data.errcode === 1
+      })
+
+      return false
+    },
+    showLoginDialog() {
+      this.login_dialog = true
     }
   }
 }
