@@ -1,14 +1,46 @@
 <template>
   <v-layout column justify-center align-center>
+    <v-dialog v-model="dialog" persistent max-width="500px">
+      <v-card>
+        <v-toolbar dark color="primary">
+          <v-toolbar-title></v-toolbar-title>
+          <v-spacer>Log In</v-spacer>
+          <v-tooltip bottom></v-tooltip>
+        </v-toolbar>
+        <v-card-text>
+          <v-form>
+            <v-text-field
+              v-model="account"
+              prepend-icon="person"
+              name="login"
+              label="Account"
+              type="text"
+            ></v-text-field>
+            <v-text-field
+              id="password"
+              v-model="password"
+              prepend-icon="lock"
+              name="password"
+              label="Password"
+              type="password"
+            ></v-text-field>
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" @click="login">Log In</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-flex xs12 sm8 md6>
       <div class="text-center">
         <logo />
         <vuetify-logo />
       </div>
       <v-card>
-        <v-card-title class="headline">
-          Welcome to the Vuetify + Nuxt.js template
-        </v-card-title>
+        <v-card-title class="headline"
+          >Welcome to the Vuetify + Nuxt.js template</v-card-title
+        >
         <v-card-text>
           <p>
             Vuetify is a progressive Material Design component framework for
@@ -17,12 +49,12 @@
           </p>
           <p>
             For more information on Vuetify, check out the
-            <a href="https://vuetifyjs.com" target="_blank"> documentation </a>.
+            <a href="https://vuetifyjs.com" target="_blank">documentation</a>.
           </p>
           <p>
             If you have questions, please join the official
-            <a href="https://chat.vuetifyjs.com/" target="_blank" title="chat">
-              discord </a
+            <a href="https://chat.vuetifyjs.com/" target="_blank" title="chat"
+              >discord</a
             >.
           </p>
           <p>
@@ -31,8 +63,7 @@
               href="https://github.com/vuetifyjs/vuetify/issues"
               target="_blank"
               title="contribute"
-            >
-              issue board </a
+              >issue board</a
             >.
           </p>
           <p>
@@ -40,22 +71,21 @@
             more exciting features in the future.
           </p>
           <div class="text-xs-right">
-            <em><small>&mdash; John Leider</small></em>
+            <em>
+              <small>&mdash; John Leider</small>
+            </em>
           </div>
           <hr class="my-3" />
-          <a href="https://nuxtjs.org/" target="_blank">
-            Nuxt Documentation
-          </a>
+          <a href="https://nuxtjs.org/" target="_blank">Nuxt Documentation</a>
           <br />
-          <a href="https://github.com/nuxt/nuxt.js" target="_blank">
-            Nuxt GitHub
-          </a>
+          <a href="https://github.com/nuxt/nuxt.js" target="_blank"
+            >Nuxt GitHub</a
+          >
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn color="primary" nuxt to="/inspire">
-            Continue
-          </v-btn>
+          <!-- <v-btn color="primary" nuxt to="/inspire">Continue</v-btn> -->
+          <v-btn color="primary" @click="loginout"> Log In/ Log Out</v-btn>
         </v-card-actions>
       </v-card>
     </v-flex>
@@ -63,6 +93,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 import Logo from '~/components/Logo.vue'
 import VuetifyLogo from '~/components/VuetifyLogo.vue'
 
@@ -70,6 +101,57 @@ export default {
   components: {
     Logo,
     VuetifyLogo
+  },
+  data: () => ({
+    account: '',
+    password: '',
+    dialog: false,
+    backend: 'http://sh.wtd2.top:81'
+    // login_success: window.localStorage.getItem('token') !== undefined
+  }),
+  methods: {
+    loginfailed() {
+      alert('用户名或密码错误')
+      this.account = ''
+      this.password = ''
+    },
+    login() {
+      const url =
+        this.backend +
+        '/api/login?username=' +
+        this.account +
+        '&password=' +
+        this.password
+      axios.get(url).then((response) => {
+        if (response.status === 200) {
+          localStorage.setItem('token', response.data)
+          localStorage.setItem('account', this.account)
+          this.account = ''
+          this.password = ''
+          // this.login_success = true
+          this.dialog = false
+          alert('登录成功')
+        } else {
+          this.loginfailed()
+        }
+      })
+    },
+    loginout() {
+      if (
+        localStorage.getItem('token') === undefined ||
+        localStorage.getItem('token') == null
+      ) {
+        this.dialog = true
+      } else if (confirm('确定要注销吗')) {
+        // console.log(localStorage.getItem('token'))
+        const url = 'http://localhost:8080/cs307/logout'
+        axios.post(url, {
+          account: localStorage.getItem('account')
+        })
+        localStorage.clear()
+        alert('注销成功')
+      }
+    }
   }
 }
 </script>

@@ -1,6 +1,6 @@
 # 12307FE
 
-> Front End of 12307
+> A Nuxt.js project: front end of 12307
 
 ## Build Setup
 
