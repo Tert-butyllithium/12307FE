@@ -102,11 +102,52 @@
               show-expand
               class="elevation-1"
             >
-              <template v-slot:expanded-item="{ headers, item }">
-                <td :colspan="headers.length">More info about {{ item.id }}</td>
+              <template v-slot:item.actions="{ item }">
+                <v-icon small class="mr-2" @click="buyItem(item)">
+                  mdi-currency-usd
+                </v-icon>
               </template>
             </v-data-table>
           </v-expand-transition>
+          <v-dialog v-model="dialog" max-width="500px" persistent>
+            <v-card>
+              <v-card-title>
+                <span class="headline">Buy a Ticket</span>
+              </v-card-title>
+              <v-spacer></v-spacer>
+              <v-card-text>
+                <v-container>
+                  <v-radio-group v-model="radioGroup">
+                    <v-radio
+                      v-for="n in tobuy_types"
+                      :key="n.type_id"
+                      :label="`${n.type_name} ￥${n.price}`"
+                      :value="n.type_id"
+                    ></v-radio>
+                  </v-radio-group>
+
+                  <v-select
+                    v-model="selectedPassengers"
+                    :items="passengerItems"
+                    :item-value="getIdid"
+                    :item-text="getIdcard"
+                    attach
+                    chips
+                    label="Select Passenger"
+                    multiple
+                  ></v-select>
+                </v-container>
+              </v-card-text>
+
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue darken-1" text @click="dialog = false"
+                  >Cancel</v-btn
+                >
+                <v-btn color="blue darken-1" text @click="buybuy">Buy</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
         </v-card>
       </blockquote>
     </v-flex>
@@ -129,29 +170,7 @@ export default {
       menu: false,
       expanded: [],
       dataTableLoading: true,
-      lines: [
-        {
-          train_id: 1234,
-          dep_idx: 1,
-          arr_idx: 20,
-          train_num: 'Z42',
-          dep_station: '乌鲁木齐',
-          arr_station: '上海',
-          dep_time: '19:31',
-          arr_time: '11:59',
-          total_time: 2428,
-          ticket_yz: 0,
-          price_yz: 385.5,
-          ticket_rz: 0,
-          price_rz: 615.5,
-          ticket_sw: -1,
-          price_sw: -1,
-          ticket_yw: 0,
-          price_yw: 695.5,
-          ticket_rw: 0,
-          price_rw: 1075.5
-        }
-      ],
+      lines: [],
       tableHeaders: [
         {
           text: 'Train ID',
@@ -174,10 +193,48 @@ export default {
         { text: 'Departure Time', value: 'dep_time', align: 'center' },
         { text: 'Total Time', value: 'total_time_in_hour', align: 'center' },
         { text: 'Arrival Time', value: 'arr_time', align: 'center' },
-        { text: '', value: 'data-table-expand' }
+        { text: 'Actions', value: 'actions', sortable: false, align: 'center' }
       ],
       exactQuery: 0,
-      tableCount: 0
+      tableCount: 0,
+      dialog: false,
+      tobuy: {},
+      tobuy_types: [],
+      tobuy_types_length: 0,
+      radioGroup: 1,
+      passengerItems: [
+        {
+          id: 1,
+          name: '张三',
+          idcard: '110101192608170010',
+          phone: ' 8613800138000'
+        },
+        {
+          id: 2,
+          name: '李四',
+          idcard: '210101200001010020',
+          phone: '+8613800138001'
+        },
+        {
+          id: 6,
+          name: '王二',
+          idcard: '2',
+          phone: '2'
+        },
+        {
+          id: 11,
+          name: '刘化钠',
+          idcard: '9190201020',
+          phone: '18888888888'
+        },
+        {
+          id: 14,
+          name: '陆露鹿',
+          idcard: '310101200001010020',
+          phone: '13012341234'
+        }
+      ],
+      selectedPassengers: []
     }
   },
   computed: {
@@ -299,6 +356,98 @@ export default {
       const hb = Number(bb[0])
       const mb = Number(bb[1])
       return ha * 60 + ma + t < hb * 60 + mb
+    },
+    buyItem(item) {
+      this.tobuy.arr_idx = item.arr_idx
+      this.tobuy.dep_idx = item.dep_idx
+      this.tobuy.date = this.date.split('-').join('')
+      this.tobuy.train_id = item.train_id
+      // console.log(item)
+
+      const url =
+        '/api/price?train_id=' +
+        item.train_id +
+        '&dep_idx=' +
+        item.dep_idx +
+        '&arr_idx=' +
+        item.arr_idx
+      fetch(url)
+        .then((res) => res.json())
+        .then((res) => {
+          // eslint-disable-next-line camelcase
+          const { result_cnt, result } = res
+          // eslint-disable-next-line camelcase
+          this.tobuy_types = result
+          // eslint-disable-next-line camelcase
+          this.tobuy_types_length = result_cnt
+          // console.log(result.length)
+        })
+        .catch((err) => {
+          // eslint-disable-next-line no-console
+          console.log(err)
+        })
+        .finally()
+      this.dialog = true
+    },
+    buybuy() {
+      // console.log(this.radioGroup)
+      // console.log(this.tobuy_types[Number(this.radioGroup) - 1])
+      // const realTypeId = this.tobuy_types[Number(this.radioGroup) - 1].type_id
+      const url =
+        '/api/purchase?train_id=' +
+        this.tobuy.train_id +
+        '&dep_idx=' +
+        this.tobuy.dep_idx +
+        '&arr_idx=' +
+        this.tobuy.arr_idx +
+        '&date=' +
+        this.tobuy.date +
+        '&type_id=' +
+        this.radioGroup +
+        '&passenger_id='
+      const info = []
+      // alert(this.selectedPassengers)
+      // console.log(this.radioGroup + ' ' + realTypeId)
+      for (let x = 0; x < this.selectedPassengers.length; x++) {
+        const i = this.selectedPassengers[x]
+        fetch(url + i)
+          .then((res) => res.json())
+          .then((res) => {
+            // eslint-disable-next-line camelcase
+            const { errcode, errmsg, seat_no, order_id } = res
+            if (errcode) {
+              alert(errmsg)
+              return
+            }
+            info.push({
+              person: this.passengerItems[i],
+              order_id,
+              seat_no
+            })
+          })
+          .catch((err) => {
+            // eslint-disable-next-line no-console
+            console.log(err)
+          })
+          .finally()
+      }
+      this.dialog = false
+      this.selectedPassengers = []
+      // console.log(info)
+    },
+    getIdid(item) {
+      // console.log(item.id)
+      // console.log(this.selectedPassengers)
+      return item.id
+    },
+    getIdcard(item) {
+      return (
+        item.name +
+        ' ' +
+        item.idcard.substr(0, 5) +
+        '...' +
+        item.idcard.substr(15, 3)
+      )
     }
   }
 }
