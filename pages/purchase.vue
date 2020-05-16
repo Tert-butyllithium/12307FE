@@ -17,7 +17,7 @@
                 color="white"
                 hide-no-data
                 hide-selected
-                item-text="Description"
+                item-text="station"
                 item-value="API"
                 label="Public APIs"
                 placeholder="Start typing to Search"
@@ -26,14 +26,14 @@
               ></v-autocomplete>
 
               <v-autocomplete
-                v-model="model"
+                v-model="model2"
                 :items="items"
                 :loading="isLoading"
                 :search-input.sync="termiSearch"
                 color="white"
                 hide-no-data
                 hide-selected
-                item-text="Description"
+                item-text="station"
                 item-value="API"
                 label="Public APIs"
                 placeholder="Start typing to Search"
@@ -44,25 +44,20 @@
           </v-card-text>
           <!-- <v-divider></v-divider> -->
           <v-divider></v-divider>
-          <v-expand-transition>
-            <v-list v-if="model" class="red lighten-3">
-              <v-list-item v-for="(field, i) in fields" :key="i">
-                <v-list-item-content>
-                  <v-list-item-title v-text="field.value"></v-list-item-title>
-                  <v-list-item-subtitle
-                    v-text="field.key"
-                  ></v-list-item-subtitle>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list>
-          </v-expand-transition>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn :disabled="!model" @click="model = null">
+            <v-btn :disabled="!model && !model2" @click="model = model2 = null">
               Clear
               <v-icon right>mdi-close-circle</v-icon>
             </v-btn>
+            <v-btn :disabled="!model || !model2" @click="search">
+              Search
+              <v-icon right>mdi-magnify</v-icon>
+            </v-btn>
           </v-card-actions>
+          <v-expand-transition>
+            <v-list v-if="searched" class="blue lighten-3"></v-list>
+          </v-expand-transition>
         </v-card>
       </blockquote>
     </v-flex>
@@ -76,36 +71,38 @@ export default {
       entries: [],
       isLoading: false,
       model: null,
+      model2: null,
       // search: null
       deptSearch: null,
-      termiSearch: null
+      termiSearch: null,
+      searched: null
     }
   },
   computed: {
-    fields() {
-      if (!this.model) return []
+    // fields() {
+    //   if (!this.deptSearch) return []
 
-      return Object.keys(this.model).map((key) => {
-        return {
-          key,
-          value: this.model[key] || 'n/a'
-        }
-      })
-    },
+    //   return Object.keys(this.deptSearch).map((key) => {
+    //     return {
+    //       key,
+    //       value: this.deptSearch[key] || 'n/a'
+    //     }
+    //   })
+    // },
     items() {
       return this.entries.map((entry) => {
-        const Description =
-          entry.Description.length > this.descriptionLimit
-            ? entry.Description.slice(0, this.descriptionLimit) + '...'
-            : entry.Description
+        const station =
+          entry.station.length > this.descriptionLimit
+            ? entry.station.slice(0, this.descriptionLimit) + '...'
+            : entry.station
 
-        return Object.assign({}, entry, { Description })
+        return Object.assign({}, entry, { station })
       })
     }
   },
 
   watch: {
-    search(val) {
+    deptSearch(val) {
       // Items have already been loaded
       if (this.items.length > 0) return
 
@@ -115,7 +112,7 @@ export default {
       this.isLoading = true
 
       // Lazily load input items
-      fetch('/api/station')
+      fetch('/stations.json')
         .then((res) => res.json())
         .then((res) => {
           // eslint-disable-next-line camelcase
@@ -123,6 +120,7 @@ export default {
           // eslint-disable-next-line camelcase
           this.count = result_cnt
           this.entries = result
+          // console.log(result.length)
         })
         .catch((err) => {
           // eslint-disable-next-line no-console
@@ -132,6 +130,41 @@ export default {
       // this.entries = this.names
       // this.count = this.names.length
       // this.isLoading = false
+    },
+    termiSearch(val) {
+      // Items have already been loaded
+      if (this.items.length > 0) return
+
+      // Items have already been requested
+      if (this.isLoading) return
+
+      this.isLoading = true
+
+      // Lazily load input items
+      fetch('/stations.json')
+        .then((res) => res.json())
+        .then((res) => {
+          // eslint-disable-next-line camelcase
+          const { result_cnt, result } = res
+          // eslint-disable-next-line camelcase
+          this.count = result_cnt
+          this.entries = result
+          // console.log(result.length)
+        })
+        .catch((err) => {
+          // eslint-disable-next-line no-console
+          console.log(err)
+        })
+        .finally(() => (this.isLoading = false))
+      // this.entries = this.names
+      // this.count = this.names.length
+      // this.isLoading = false
+    }
+  },
+  methods: {
+    search() {
+      console.log('search')
+      this.searched = true
     }
   }
 }
