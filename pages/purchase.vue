@@ -79,13 +79,16 @@
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn
-              :disabled="!model && !model2"
+              :disabled="dataTableLoading || (!model && !model2)"
               @click="model = model2 = searched = null"
             >
               Clear
               <v-icon right>mdi-close-circle</v-icon>
             </v-btn>
-            <v-btn :disabled="!model || !model2" @click="search">
+            <v-btn
+              :disabled="dataTableLoading || !model || !model2"
+              @click="search"
+            >
               Search
               <v-icon right>mdi-magnify</v-icon>
             </v-btn>
@@ -150,9 +153,36 @@
                 <v-btn
                   color="blue darken-1"
                   text
-                  :disabled="!radioGroup"
+                  :disabled="!radioGroup || !selectedPassengers.length"
                   @click="buybuy"
                   >Buy</v-btn
+                >
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+          <v-dialog v-model="sucessTicktInfoDialog" max-width="500px">
+            <v-card>
+              <v-card-title>
+                <span class="headline">Ticket Information</span>
+              </v-card-title>
+              <v-spacer></v-spacer>
+              <v-card-text>
+                Train ID: {{ tobuy.train_id }} <br />
+                Date: {{ date }} <br />
+                Departure Time: {{ tobuy.dep_time }} <br />
+                Passengers:
+                <div v-for="i in sucessPassengers" :key="i.idcard">
+                  {{ i.name }} | {{ i.idcard }} | {{ i.seat_no }} <br />
+                  <!-- {{ i }} <br /> -->
+                </div>
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                  color="blue darken-1"
+                  text
+                  @click="sucessTicktInfoDialog = false"
+                  >OK</v-btn
                 >
               </v-card-actions>
             </v-card>
@@ -178,7 +208,7 @@ export default {
       date: new Date().toISOString().substr(0, 10),
       menu: false,
       expanded: [],
-      dataTableLoading: true,
+      dataTableLoading: false,
       lines: [],
       tableHeaders: [
         {
@@ -212,7 +242,9 @@ export default {
       tobuy_types_length: 0,
       radioGroup: 0,
       passengerItems: [],
-      selectedPassengers: []
+      selectedPassengers: [],
+      sucessTicktInfoDialog: false,
+      sucessPassengers: []
     }
   },
   computed: {
@@ -268,6 +300,8 @@ export default {
     search() {
       // console.log(this.model.code)
       // console.log(this.model2.code)
+      this.dataTableLoading = true
+      this.lines = []
       const now = new Date()
       this.searched = true
       const url =
@@ -355,6 +389,7 @@ export default {
       this.tobuy.dep_idx = item.dep_idx
       this.tobuy.date = this.date.split('-').join('')
       this.tobuy.train_id = item.train_id
+      this.tobuy.dep_time = item.dep_time
       // console.log(item)
 
       const url =
@@ -401,8 +436,8 @@ export default {
         '&type_id=' +
         this.radioGroup +
         '&passenger_id='
-      const info = []
-      // alert(this.selectedPassengers)
+      this.sucessPassengers = []
+      // console.log(this.selectedPassengers)
       // console.log(this.radioGroup + ' ' + realTypeId)
       for (let x = 0; x < this.selectedPassengers.length; x++) {
         const i = this.selectedPassengers[x]
@@ -415,10 +450,22 @@ export default {
               alert(errmsg)
               return
             }
-            info.push({
-              person: this.passengerItems[i],
+            const person = {}
+            // console.log(i)
+            for (const p in this.passengerItems) {
+              // console.log(this.passengerItems[p].name)
+              // eslint-disable-next-line eqeqeq
+              if (this.passengerItems[p].id == i) {
+                person.name = this.passengerItems[p].name
+                person.idcard = this.passengerItems[p].idcard
+              }
+            }
+            this.sucessPassengers.push({
+              // person: this.passengerItems[i],
               order_id,
-              seat_no
+              seat_no,
+              name: person.name,
+              idcard: person.idcard
             })
           })
           .catch((err) => {
@@ -427,9 +474,12 @@ export default {
           })
           .finally()
       }
+      // this.sucessPassengerNumberh = this.tobuy.info.length
       this.dialog = false
       this.selectedPassengers = []
-      // console.log(info)
+      if (confirm('Successful ticket purchase, View ticket information?'))
+        this.sucessTicktInfoDialog = true
+      // console.log(this.sucessPassengers)
     },
     getIdid(item) {
       // console.log(item.id)
