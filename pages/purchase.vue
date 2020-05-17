@@ -3,13 +3,14 @@
     <v-flex class="text-center">
       <img src="/v.png" alt="Vuetify.js" class="mb-5" />
       <blockquote class="blockquote">
-        <v-card>
+        <v-card :loading="!prepared">
           <v-card-title class="headline blue lighten-2">
             Search Train Tickets
           </v-card-title>
           <v-card-text>
             <v-row>
               <v-autocomplete
+                v-if="prepared"
                 v-model="model"
                 :items="items"
                 :loading="isLoading"
@@ -25,6 +26,7 @@
               ></v-autocomplete>
 
               <v-autocomplete
+                v-if="prepared"
                 v-model="model2"
                 :items="items"
                 :loading="isLoading"
@@ -38,7 +40,6 @@
                 prepend-icon="mdi-airplane-landing"
                 return-object
               ></v-autocomplete>
-
               <v-menu
                 ref="menu"
                 v-model="menu"
@@ -72,6 +73,16 @@
                   >
                 </v-date-picker>
               </v-menu>
+              <v-select
+                v-if="prepared"
+                v-model="exactQuery"
+                :items="option"
+                item-text="text"
+                item-value="value"
+                label="Advanced query options"
+                prepend-icon="mdi-apple-keyboard-option"
+              >
+              </v-select>
             </v-row>
           </v-card-text>
           <!-- <v-divider></v-divider> -->
@@ -167,7 +178,8 @@
               </v-card-title>
               <v-spacer></v-spacer>
               <v-card-text>
-                Train ID: {{ tobuy.train_id }} <br />
+                Train ID: {{ tobuy.train_num }} <br />
+                Interval: {{ tobuy.dep_name }} -> {{ tobuy.arr_name }} <br />
                 Date: {{ date }} <br />
                 Departure Time: {{ tobuy.dep_time }} <br />
                 Passengers:
@@ -198,6 +210,7 @@ export default {
     return {
       descriptionLimit: 60,
       entries: [],
+      prepared: false,
       isLoading: false,
       model: null,
       model2: null,
@@ -230,7 +243,22 @@ export default {
           sortable: false
         },
         { text: 'Departure Time', value: 'dep_time', align: 'center' },
-        { text: 'Total Time', value: 'total_time_in_hour', align: 'center' },
+        {
+          text: 'Total Time',
+          value: 'total_time_in_hour',
+          align: 'center',
+          sort: (a, b) => {
+            const getHM = (a) => {
+              const aa = a.split(' ')
+              if (aa.length < 4) {
+                return Number(aa[0])
+              } else {
+                return 60 * Number(aa[0]) + Number(aa[2])
+              }
+            }
+            return getHM(a) - getHM(b)
+          }
+        },
         { text: 'Arrival Time', value: 'arr_time', align: 'center' },
         { text: 'Actions', value: 'actions', sortable: false, align: 'center' }
       ],
@@ -244,7 +272,21 @@ export default {
       passengerItems: [],
       selectedPassengers: [],
       sucessTicktInfoDialog: false,
-      sucessPassengers: []
+      sucessPassengers: [],
+      option: [
+        {
+          text: 'Same City',
+          value: 0
+        },
+        {
+          text: 'Precise Station',
+          value: 1
+        },
+        {
+          text: 'City Central Station (experimental)',
+          value: 2
+        }
+      ]
     }
   },
   computed: {
@@ -294,7 +336,7 @@ export default {
         // eslint-disable-next-line no-console
         console.log(err)
       })
-      .finally()
+      .finally((this.prepared = true))
   },
   methods: {
     search() {
@@ -390,6 +432,9 @@ export default {
       this.tobuy.date = this.date.split('-').join('')
       this.tobuy.train_id = item.train_id
       this.tobuy.dep_time = item.dep_time
+      this.tobuy.train_num = item.train_num
+      this.tobuy.dep_name = item.dep_station
+      this.tobuy.arr_name = item.arr_station
       // console.log(item)
 
       const url =
