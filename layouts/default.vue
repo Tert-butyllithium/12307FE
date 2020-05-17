@@ -133,6 +133,11 @@ export default {
           to: '/purchase'
         },
         {
+          icon: 'mdi-sync',
+          title: 'Transfer Search',
+          to: '/transfer'
+        },
+        {
           icon: 'mdi-cart',
           title: 'Order Management',
           to: '/order'

@@ -32,15 +32,36 @@
                         <span class="headline"> Details </span>
                       </v-card-title>
 
-                      <v-card-text> Order ID: {{}} </v-card-text>
+                      <v-card-text>
+                        Order ID: {{ editedItem.order_id }} <br />
+                        Passenger: {{ editedItem.passenger_name }} |
+                        {{ passenger_idcard }} <br />
+                        Train ID: {{ editedItem.train_num }} <br />
+                        Interval: {{ editedItem.dep_station }} ->
+                        {{ editedItem.arr_station }} <br />
+                        Interval Time: {{ editedItem.dep_time }} ->
+                        {{ editedItem.arr_time }} <br />
+                        Seat: {{ editedItem.seat_no }} |
+                        {{ editedItem.seat_type }} <br />
+                        Price: {{ editedItem.seat_price }} <br />
+                        Purchase Time: {{ editedItem.purchase_time }} <br />
+                      </v-card-text>
 
                       <v-card-actions>
                         <v-spacer></v-spacer>
-                        <v-btn color="blue darken-1" text @click="close"
-                          >Cancel</v-btn
+                        <v-btn
+                          color="error"
+                          depressed
+                          :disabled="
+                            new Date(editedItem.dep_time) - new Date() <
+                              allowRefund
+                          "
+                          @click="refund"
+                          >Refund</v-btn
                         >
-                        <v-btn color="blue darken-1" text @click="save"
-                          >Save</v-btn
+                        <!-- <v-col cols="1"></v-col> -->
+                        <v-btn color="blue" depressed @click="close"
+                          >Close</v-btn
                         >
                       </v-card-actions>
                     </v-card>
@@ -129,7 +150,8 @@ export default {
       seat_type: null,
       purchase_time: null,
       dep_time: null,
-      arr_time: null
+      arr_time: null,
+      passenger_idcard: null
     },
     defaultItem: {
       order_id: 0,
@@ -142,8 +164,10 @@ export default {
       seat_type: null,
       purchase_time: null,
       dep_time: null,
-      arr_time: null
-    }
+      arr_time: null,
+      passenger_idcard: null
+    },
+    allowRefund: 25 * 60000
   }),
 
   computed: {
@@ -182,6 +206,7 @@ export default {
 
     moreInfo(item) {
       this.dialog = true
+      this.editedItem = item
     },
 
     close() {
@@ -191,26 +216,25 @@ export default {
         this.editedIndex = -1
       })
     },
-
-    save() {
-      let url
-      if (this.editedIndex > -1) {
-        Object.assign(this.desserts[this.editedIndex], this.editedItem)
-        url = 'api/editpassenger?id=' + this.editedItem.id + '&'
-      } else {
-        this.desserts.push(this.editedItem)
-        url = '/api/addpassenger?'
+    canRefund() {
+      const now = new Date()
+      return new Date(this.editedItem.dep_time) - now > this.allowRefund
+    },
+    refund() {
+      const index = this.desserts.indexOf(this.editedItem)
+      if (!this.canRefund()) {
+        alert(
+          'Error: You cannot refund the ticket because it is less than 25 minutes before the departure time'
+        )
+        return
       }
-      url +=
-        'order_id=' +
-        this.editedItem.order_id +
-        '&passenger_name=' +
-        this.editedItem.passenger_name +
-        '&train_num=' +
-        this.editedItem.train_num
-      axios.get(url).then((response) => {
-        this.close()
-      })
+      if (confirm('Are you sure you want to refund this ticket?')) {
+        const url = '/api/refund?order_id=' + this.editedItem.order_id
+        axios.get(url).then(() => {
+          this.desserts.splice(index, 1)
+        })
+      }
+      this.dialog = false
     }
   }
 }
