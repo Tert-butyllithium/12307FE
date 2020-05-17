@@ -121,7 +121,10 @@
                     <v-radio
                       v-for="n in tobuy_types"
                       :key="n.type_id"
-                      :label="`${n.type_name} ￥${n.price}`"
+                      :label="
+                        `${n.type_name} ￥${n.price}  |  Remaining Tickets: ${n.ticket}`
+                      "
+                      :disabled="!n.ticket"
                       :value="n.type_id"
                     ></v-radio>
                   </v-radio-group>
@@ -144,7 +147,13 @@
                 <v-btn color="blue darken-1" text @click="dialog = false"
                   >Cancel</v-btn
                 >
-                <v-btn color="blue darken-1" text @click="buybuy">Buy</v-btn>
+                <v-btn
+                  color="blue darken-1"
+                  text
+                  :disabled="!radioGroup"
+                  @click="buybuy"
+                  >Buy</v-btn
+                >
               </v-card-actions>
             </v-card>
           </v-dialog>
@@ -201,39 +210,8 @@ export default {
       tobuy: {},
       tobuy_types: [],
       tobuy_types_length: 0,
-      radioGroup: 1,
-      passengerItems: [
-        {
-          id: 1,
-          name: '张三',
-          idcard: '110101192608170010',
-          phone: ' 8613800138000'
-        },
-        {
-          id: 2,
-          name: '李四',
-          idcard: '210101200001010020',
-          phone: '+8613800138001'
-        },
-        {
-          id: 6,
-          name: '王二',
-          idcard: '2',
-          phone: '2'
-        },
-        {
-          id: 11,
-          name: '刘化钠',
-          idcard: '9190201020',
-          phone: '18888888888'
-        },
-        {
-          id: 14,
-          name: '陆露鹿',
-          idcard: '310101200001010020',
-          phone: '13012341234'
-        }
-      ],
+      radioGroup: 0,
+      passengerItems: [],
       selectedPassengers: []
     }
   },
@@ -270,6 +248,21 @@ export default {
         console.log(err)
       })
       .finally(() => (this.isLoading = false))
+    // get passengers info
+    fetch('/api/passenger')
+      .then((res) => res.json())
+      .then((res) => {
+        // eslint-disable-next-line camelcase
+        const { result } = res
+        // eslint-disable-next-line camelcase
+        this.passengerItems = result
+        // console.log(result.length)
+      })
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.log(err)
+      })
+      .finally()
   },
   methods: {
     search() {
@@ -370,7 +363,10 @@ export default {
         '&dep_idx=' +
         item.dep_idx +
         '&arr_idx=' +
-        item.arr_idx
+        item.arr_idx +
+        '&date=' +
+        this.tobuy.date
+
       fetch(url)
         .then((res) => res.json())
         .then((res) => {
