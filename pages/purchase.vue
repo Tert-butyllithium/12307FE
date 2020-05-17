@@ -105,15 +105,12 @@
             </v-btn>
           </v-card-actions>
           <v-expand-transition>
-            <!-- <v-list v-if="searched" class="blue lighten-3"></v-list> -->
             <v-data-table
               v-if="searched"
               :headers="tableHeaders"
               :items="lines"
-              :expanded.sync="expanded"
               :loading="dataTableLoading"
               item-key="id"
-              show-expand
               class="elevation-1"
             >
               <template v-slot:item.actions="{ item }">
@@ -220,7 +217,7 @@ export default {
       searched: null,
       date: new Date().toISOString().substr(0, 10),
       menu: false,
-      expanded: [],
+      // expanded: [],
       dataTableLoading: false,
       lines: [],
       tableHeaders: [
