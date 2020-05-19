@@ -15,7 +15,7 @@
             >
               <template v-slot:top>
                 <v-toolbar flat color="white">
-                  <v-toolbar-title>Orderlist</v-toolbar-title>
+                  <v-toolbar-title>Order List</v-toolbar-title>
                   <v-spacer></v-spacer>
                   <v-text-field
                     v-model="search"
@@ -35,7 +35,7 @@
                       <v-card-text>
                         Order ID: {{ editedItem.order_id }} <br />
                         Passenger: {{ editedItem.passenger_name }} |
-                        {{ passenger_idcard }} <br />
+                        {{ editedItem.passenger_idcard }} <br />
                         Train ID: {{ editedItem.train_num }} <br />
                         Interval: {{ editedItem.dep_station }} ->
                         {{ editedItem.arr_station }} <br />
@@ -106,7 +106,7 @@ export default {
         align: 'center'
       },
       {
-        text: 'Train ID',
+        text: 'Train No',
         value: 'train_num',
         sortable: false,
         align: 'center'
@@ -118,7 +118,7 @@ export default {
         align: 'center'
       },
       {
-        text: 'Arrivial Station',
+        text: 'Arrival Station',
         value: 'arr_station',
         sortable: false,
         align: 'center'
@@ -218,7 +218,16 @@ export default {
     },
     canRefund() {
       const now = new Date()
-      return new Date(this.editedItem.dep_time) - now > this.allowRefund
+      if (
+        this.editedItem.dep_time.substr(0, 10) ===
+        now.toISOString().substr(0, 10)
+      )
+        return new Date(this.editedItem.dep_time) - now > this.allowRefund
+      if (
+        this.editedItem.dep_time.substr(0, 10) < now.toISOString().substr(0, 10)
+      )
+        return false
+      return true
     },
     refund() {
       const index = this.desserts.indexOf(this.editedItem)

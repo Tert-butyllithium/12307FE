@@ -19,7 +19,7 @@
                 hide-selected
                 item-text="station"
                 item-value="API"
-                label="Departure Station"
+                label="Departure"
                 placeholder="Start typing to Search"
                 prepend-icon="mdi-airplane-takeoff"
                 return-object
@@ -35,7 +35,7 @@
                 hide-selected
                 item-text="station"
                 item-value="API"
-                label="Arrival Station"
+                label="Arrival"
                 placeholder="Start typing to Search"
                 prepend-icon="mdi-airplane-landing"
                 return-object
@@ -79,7 +79,7 @@
                 :items="option"
                 item-text="text"
                 item-value="value"
-                label="Advanced query options"
+                label="Advanced Options"
                 prepend-icon="mdi-apple-keyboard-option"
               >
               </v-select>
@@ -117,6 +117,9 @@
                 <v-icon small class="mr-2" @click="buyItem(item)">
                   mdi-currency-usd
                 </v-icon>
+                <v-icon small @click="timetableItem(item)">
+                  mdi-format-list-numbered
+                </v-icon>
               </template>
             </v-data-table>
           </v-expand-transition>
@@ -133,7 +136,7 @@
                       v-for="n in tobuy_types"
                       :key="n.type_id"
                       :label="
-                        `${n.type_name} ￥${n.price}  |  Remaining Tickets: ${n.ticket}`
+                        `${n.type_name} ￥${n.price} (Remain: ${n.ticket})`
                       "
                       :disabled="!n.ticket"
                       :value="n.type_id"
@@ -209,8 +212,18 @@ export default {
       entries: [],
       prepared: false,
       isLoading: false,
-      model: null,
-      model2: null,
+      model: {
+        code: 'GZQ',
+        station: '广州',
+        city: '广州市',
+        province: '广东省'
+      },
+      model2: {
+        code: 'SZQ',
+        station: '深圳',
+        city: '深圳市',
+        province: '广东省'
+      },
       // search: null
       deptSearch: null,
       termiSearch: null,
@@ -222,44 +235,46 @@ export default {
       lines: [],
       tableHeaders: [
         {
-          text: 'Train ID',
-          align: 'center',
+          text: 'Tr.No',
+          align: 'left',
           sortable: false,
           value: 'train_num'
         },
         {
-          text: 'Departure Station',
+          text: 'Dep.S',
           value: 'dep_station',
-          align: 'center',
+          align: 'left',
           sortable: false
         },
         {
-          text: 'Arrival Station',
+          text: 'Arr.S',
           value: 'arr_station',
-          align: 'center',
+          align: 'left',
           sortable: false
         },
-        { text: 'Departure Time', value: 'dep_time', align: 'center' },
+        { text: 'Dep.T', value: 'dep_time', align: 'left' },
         {
-          text: 'Total Time',
+          text: 'Time',
           value: 'total_time_in_hour',
-          align: 'center',
+          align: 'left',
           sort: (a, b) => {
             const getHM = (a) => {
-              const aa = a.split(' ')
-              if (aa.length < 4) {
-                return Number(aa[0])
+              const aa = a.split('h')
+              if (aa.length === 1) {
+                return Number(aa[0].split('m')[0])
               } else {
-                return 60 * Number(aa[0]) + Number(aa[2])
+                return 60 * Number(aa[0]) + Number(aa[1].split('m')[0])
               }
             }
             return getHM(a) - getHM(b)
           }
         },
-        { text: 'Arrival Time', value: 'arr_time', align: 'center' },
+        { text: 'Arr.T', value: 'arr_time', align: 'left' },
+        { text: 'PRICE', value: 'price', align: 'left' },
+        { text: 'REMAIN', value: 'remain', align: 'left' },
         { text: 'Actions', value: 'actions', sortable: false, align: 'center' }
       ],
-      exactQuery: 0,
+      exactQuery: 2,
       tableCount: 0,
       dialog: false,
       tobuy: {},
@@ -272,16 +287,16 @@ export default {
       sucessPassengers: [],
       option: [
         {
-          text: 'Same City',
+          text: 'Expand',
+          value: 2
+        },
+        {
+          text: 'City',
           value: 0
         },
         {
-          text: 'Precise Station',
+          text: 'Precise',
           value: 1
-        },
-        {
-          text: 'City Central Station (experimental)',
-          value: 2
         }
       ]
     }
@@ -398,20 +413,14 @@ export default {
     process(item) {
       const hour = Math.floor(item.total_time / 60)
       if (hour) {
-        item.total_time_in_hour =
-          hour +
-          ' hour' +
-          (hour === 1 ? ' ' : 's ') +
-          (item.total_time % 60) +
-          ' minutes'
+        item.total_time_in_hour = hour + 'h' + (item.total_time % 60) + 'm'
       } else {
-        item.total_time_in_hour = (item.total_time % 60) + ' minutes'
+        item.total_time_in_hour = (item.total_time % 60) + 'm'
       }
       const moreThanDay = this.more_then_day(item.dep_time, item.total_time)
       // console.log(moreThanDay)
       if (moreThanDay) {
-        item.arr_time +=
-          ' (+' + moreThanDay + ' day' + (moreThanDay === 1 ? '' : 's') + ')'
+        item.arr_time += ' (+' + moreThanDay + ')'
       }
     },
     time_cmp(ha, ma, b, t) {
@@ -536,6 +545,9 @@ export default {
         '...' +
         item.idcard.substr(15, 3)
       )
+    },
+    timetableItem(item) {
+      this.dialog = true
     }
   }
 }

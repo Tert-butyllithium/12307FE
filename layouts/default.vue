@@ -29,7 +29,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="normal" @click="login_dialog = false">Cancel</v-btn>
-          <v-btn color="primary" @click="login">Login</v-btn>
+          <v-btn color="primary" @click="login">Log in</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -123,35 +123,35 @@ export default {
           to: '/'
         },
         {
-          icon: 'mdi-chart-bubble',
-          title: 'Inspire',
-          to: '/inspire'
+          icon: 'mdi-format-list-numbered',
+          title: 'Timetable',
+          to: '/timetable'
         },
         {
           icon: 'mdi-train',
-          title: 'Ticket Purchase',
+          title: 'Purchase',
           to: '/purchase'
         },
         {
           icon: 'mdi-sync',
-          title: 'Transfer Search',
+          title: 'Transfer',
           to: '/transfer'
         },
         {
           icon: 'mdi-cart',
-          title: 'Order Management',
+          title: 'Order',
           to: '/order'
         },
         {
           icon: 'mdi-account-multiple',
-          title: 'Passenger management',
+          title: 'Passenger',
           to: '/passengers'
         }
       ],
       miniVariant: false,
       right: true,
       rightDrawer: false,
-      title: '12307 Railway ticketing system',
+      title: '12307 Railway Ticketing System',
       account: '',
       password: '',
       login_dialog: false

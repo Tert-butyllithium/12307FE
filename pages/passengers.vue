@@ -22,7 +22,7 @@
               <template v-slot:top>
                 <v-toolbar flat color="white">
                   <v-toolbar-title
-                    >Common passenger information</v-toolbar-title
+                    >Common Passenger Information</v-toolbar-title
                   >
                   <v-spacer></v-spacer>
                   <v-text-field

@@ -19,7 +19,7 @@
                 hide-selected
                 item-text="station"
                 item-value="API"
-                label="Departure Station"
+                label="Departure"
                 placeholder="Start typing to Search"
                 prepend-icon="mdi-airplane-takeoff"
                 return-object
@@ -35,7 +35,7 @@
                 hide-selected
                 item-text="station"
                 item-value="API"
-                label="Arrival Station"
+                label="Arrival"
                 placeholder="Start typing to Search"
                 prepend-icon="mdi-airplane-landing"
                 return-object
@@ -79,7 +79,7 @@
                 :items="option"
                 item-text="text"
                 item-value="value"
-                label="Advanced query options"
+                label="Advanced Options"
                 prepend-icon="mdi-apple-keyboard-option"
               >
               </v-select>
@@ -133,8 +133,18 @@ export default {
       entries: [],
       prepared: false,
       isLoading: false,
-      model: null,
-      model2: null,
+      model: {
+        code: 'BJP',
+        station: '北京',
+        city: '北京市',
+        province: '北京市'
+      },
+      model2: {
+        code: 'SZQ',
+        station: '深圳',
+        city: '深圳市',
+        province: '广东省'
+      },
       // search: null
       deptSearch: null,
       termiSearch: null,
@@ -144,86 +154,95 @@ export default {
       // expanded: [],
       dataTableLoading: false,
       lines: [],
-      durTimeSort: (a, b) => {
-        const getHM = (a) => {
-          const aa = a.split(' ')
-          if (aa.length < 4) {
-            return Number(aa[0])
-          } else {
-            return 60 * Number(aa[0]) + Number(aa[2])
-          }
-        }
-        return getHM(a) - getHM(b)
-      },
       tableHeaders: [
         {
-          text: 'First Train',
-          align: 'center',
+          text: 'F.Tr.No',
+          align: 'left',
           sortable: false,
           value: 'first_train'
         },
         {
-          text: 'Second Train',
-          align: 'center',
+          text: 'S.Tr.No',
+          align: 'left',
           sortable: false,
           value: 'second_train'
         },
         {
-          text: 'Departure Station',
+          text: 'Dep',
           value: 'dep_station',
-          align: 'center',
+          align: 'left',
           sortable: false
         },
         {
-          text: 'Transfer station',
+          text: 'Via',
           value: 'via_station',
-          align: 'center',
+          align: 'left',
           sortable: false
         },
         {
-          text: 'Arrival station',
+          text: 'Arr',
           value: 'arr_station',
-          align: 'center',
+          align: 'left',
           sortable: false
         },
         {
-          text: 'First Departure Time',
+          text: 'F.Dep.T',
           value: 'first_dep_time',
-          align: 'center',
+          align: 'left',
           sortable: false
         },
         {
-          text: 'First Arrvial Time',
+          text: 'F.Arr.T',
           value: 'first_arr_time',
-          align: 'center',
+          align: 'left',
           sortable: false
         },
         {
-          text: 'Second Departure Time',
+          text: 'S.Dep.T',
           value: 'second_dep_time',
-          align: 'center',
+          align: 'left',
           sortable: false
         },
         {
-          text: 'First Arrvial Time',
+          text: 'S.Arr.T',
           value: 'second_arr_time',
-          align: 'center',
+          align: 'left',
           sortable: false
         },
         {
-          text: 'Total Time',
+          text: 'Time',
           value: 'total_time_in_hour',
-          align: 'center',
-          sort: this.durTimeSort
+          align: 'left',
+          sort: (a, b) => {
+            const getHM = (a) => {
+              const aa = a.split('h')
+              if (aa.length === 1) {
+                return Number(aa[0].split('m')[0])
+              } else {
+                return 60 * Number(aa[0]) + Number(aa[1].split('m')[0])
+              }
+            }
+            return getHM(a) - getHM(b)
+          }
         },
         {
-          text: 'Transfer Time',
+          text: 'Transfer',
           value: 'transfer_time_in_hour',
-          align: 'center',
-          sort: this.durTimeSort
+          align: 'left',
+          sort: (a, b) => {
+            const getHM = (a) => {
+              const aa = a.split('h')
+              if (aa.length === 1) {
+                return Number(aa[0].split('m')[0])
+              } else {
+                return 60 * Number(aa[0]) + Number(aa[1].split('m')[0])
+              }
+            }
+            return getHM(a) - getHM(b)
+          }
         }
       ],
-      exactQuery: 0,
+      exactQuery: 2,
       tableCount: 0,
       dialog: false,
       tobuy: {},
@@ -236,15 +255,15 @@ export default {
       sucessPassengers: [],
       option: [
         {
-          text: 'Same City',
+          text: 'City',
           value: 0
         },
         {
-          text: 'Precise Station',
+          text: 'Precise',
           value: 1
         },
         {
-          text: 'City Central Station (experimental)',
+          text: 'Expand',
           value: 2
         }
       ]
@@ -362,34 +381,16 @@ export default {
     process(item) {
       const hour = Math.floor(item.total_time / 60)
       if (hour) {
-        item.total_time_in_hour =
-          hour +
-          ' hour' +
-          (hour === 1 ? ' ' : 's ') +
-          (item.total_time % 60) +
-          ' minutes'
+        item.total_time_in_hour = hour + 'h' + (item.total_time % 60) + 'm'
       } else {
-        item.total_time_in_hour = (item.total_time % 60) + ' minutes'
+        item.total_time_in_hour = (item.total_time % 60) + 'm'
       }
       const hourTransfer = Math.floor(item.transfer_time / 60)
       const mm = item.transfer_time % 60
       if (hourTransfer) {
-        item.transfer_time_in_hour =
-          hourTransfer +
-          ' hour' +
-          (hour === 1 ? ' ' : 's ') +
-          mm +
-          ' minute' +
-          (mm === 1 ? '' : 's')
+        item.transfer_time_in_hour = hourTransfer + 'h' + (mm % 60) + 'm'
       } else {
-        item.transfer_time_in_hour = mm + ' minute' + (mm === 1 ? '' : 's')
-      }
-      const moreThanDay = this.more_then_day(
-        item.first_dep_time,
-        item.total_time
-      )
-      if (moreThanDay) {
-        item.second_arr_time += ' (+' + moreThanDay + ')'
+        item.transfer_time_in_hour = mm + 'm'
       }
     },
     time_cmp(ha, ma, b, t) {

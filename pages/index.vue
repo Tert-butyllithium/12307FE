@@ -6,53 +6,37 @@
         <vuetify-logo />
       </div>
       <v-card>
-        <v-card-title class="headline"
-          >Welcome to the Vuetify + Nuxt.js template</v-card-title
-        >
+        <v-card-title class="headline">
+          Welcome to the 12307 Railway Ticketing System
+        </v-card-title>
         <v-card-text>
           <p>
-            Vuetify is a progressive Material Design component framework for
-            Vue.js. It was designed to empower developers to create amazing
-            applications.
+            In our 12307 railway ticketing system, we provide a light system for
+            your management about railway tickets.
           </p>
           <p>
-            For more information on Vuetify, check out the
-            <a href="https://vuetifyjs.com" target="_blank">documentation</a>.
+            Following functions are provided in this system.
           </p>
+          <ul>
+            <li>Query the timetable of given train</li>
+            <li>Purchase train tickets</li>
+            <li>Recommendation for transfer routes</li>
+            <li>Management of orders and common passengers</li>
+          </ul>
+          <p></p>
           <p>
-            If you have questions, please join the official
-            <a href="https://chat.vuetifyjs.com/" target="_blank" title="chat"
-              >discord</a
-            >.
+            Thank you for experiencing our online tickets reserving system.
           </p>
-          <p>
-            Find a bug? Report it on the github
-            <a
-              href="https://github.com/vuetifyjs/vuetify/issues"
-              target="_blank"
-              title="contribute"
-              >issue board</a
-            >.
-          </p>
-          <p>
-            Thank you for developing with Vuetify and I look forward to bringing
-            more exciting features in the future.
-          </p>
-          <div class="text-xs-right">
-            <em>
-              <small>&mdash; John Leider</small>
-            </em>
-          </div>
           <hr class="my-3" />
-          <a href="https://nuxtjs.org/" target="_blank">Nuxt Documentation</a>
-          <br />
-          <a href="https://github.com/nuxt/nuxt.js" target="_blank"
-            >Nuxt GitHub</a
-          >
+          The UI is based on
+          <a href="https://vuetifyjs.com" target="_blank"
+            >Vuetify + Nuxt.js template</a
+          >.
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn color="primary" nuxt to="/inspire">Continue</v-btn>
+          <v-btn color="primary" nuxt to="/purchase">Purchase</v-btn>
+          <v-btn color="primary" nuxt to="/order">Order List</v-btn>
           <!-- <v-btn color="primary" @click="loginout"> Log In/ Log Out</v-btn> -->
         </v-card-actions>
       </v-card>
