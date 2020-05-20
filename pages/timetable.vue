@@ -86,7 +86,7 @@
               </v-dialog>
             </v-toolbar>
           </template>
-          <template v-slot:item.actions="{ item }">
+          <template v-if="privilege" v-slot:item.actions="{ item }">
             <v-icon small class="mr-2" @click="editItem(item)">
               mdi-pencil
             </v-icon>
@@ -95,6 +95,11 @@
             </v-icon>
             <v-icon small class="mr-2" @click="addStation(item.station_idx)">
               mdi-plus-circle
+            </v-icon>
+          </template>
+          <template v-else v-slot:item.actions="{ item }">
+            <v-icon small class="mr-2" @click="gao(item)">
+              mdi-dots-horizontal
             </v-icon>
           </template>
         </v-data-table>
@@ -144,7 +149,12 @@ export default {
         sortable: false,
         value: 'dep_day'
       },
-      { text: 'Actions', align: 'center', value: 'actions', sortable: false }
+      {
+        text: 'Actions',
+        align: 'center',
+        value: 'actions',
+        sortable: false
+      }
     ],
     desserts: [],
     editedIndex: -1,
@@ -168,7 +178,8 @@ export default {
       station: '',
       code: ''
     },
-    search: ''
+    search: '',
+    privilege: false
   }),
 
   computed: {
@@ -183,6 +194,23 @@ export default {
     }
   },
 
+  mounted() {
+    const url = '/api/status'
+    fetch(url)
+      .then((res) => res.json())
+      .then((res) => {
+        this.privilege = res.privilege === 1
+      })
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.log(err)
+      })
+      .finally()
+    // if (this.privilege) {
+    //   this.headers.push()
+    // }
+  },
+
   created() {
     this.initialize()
   },
@@ -193,11 +221,12 @@ export default {
     },
 
     editItem(item) {
-      const idx = this.editedItem.station_idx
+      const idx = item.station_idx
       this.editedIndex = this.desserts.indexOf(item)
+      // console.log(this.editedIndex)
       this.editedItem = Object.assign({}, item)
       this.editedItem.station_idx = idx
-      // console.log(this.editedItem)
+      console.log(this.editedItem)
       this.dialog = true
       // TO-DO: send to server
     },
@@ -252,6 +281,9 @@ export default {
       this.editItem(this.editedItem)
 
       // console.log(this.desserts)
+    },
+    gao(item) {
+      return null
     }
   }
 }
