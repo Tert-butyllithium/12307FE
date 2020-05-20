@@ -113,13 +113,18 @@
               item-key="id"
               class="elevation-1"
             >
+              <template v-slot:item.train_num="{ item }">
+                <div @click="getTimeTable(item)">
+                  <u>{{ item.train_num }} </u>
+                </div>
+              </template>
               <template v-slot:item.actions="{ item }">
                 <v-icon small class="mr-2" @click="buyItem(item)">
                   mdi-currency-usd
                 </v-icon>
-                <v-icon small @click="timetableItem(item)">
+                <!-- <v-icon small @click="timetableItem(item)">
                   mdi-format-list-numbered
-                </v-icon>
+                </v-icon> -->
               </template>
             </v-data-table>
           </v-expand-transition>
@@ -197,6 +202,32 @@
                   >OK</v-btn
                 >
               </v-card-actions>
+            </v-card>
+          </v-dialog>
+          <v-dialog v-model="timeTableDialog" max-width="290">
+            <v-card>
+              <v-card-title class="headline"
+                >Time Table for {{ searchTimeTableNo }}</v-card-title
+              >
+              <v-simple-table dense>
+                <template v-slot:default>
+                  <thead>
+                    <tr>
+                      <th class="text-left">Station</th>
+                      <th class="text-left">Arr.T</th>
+                      <th class="text-left">Dep.T</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in timeTable" :key="item.station">
+                      <td>{{ item.station }}</td>
+                      <td>{{ item.arr_time }}</td>
+                      <td>{{ item.dep_time }}</td>
+                    </tr>
+                    <!-- <v-system-bar v-if="anotherDayDay"></v-system-bar> -->
+                  </tbody>
+                </template>
+              </v-simple-table>
             </v-card>
           </v-dialog>
         </v-card>
@@ -298,7 +329,13 @@ export default {
           text: 'Precise',
           value: 1
         }
-      ]
+      ],
+      timeTable: null,
+      timeTableDialog: false,
+      searchTimeTableNo: null,
+      timetableLoading: false,
+      curDay: 0,
+      anotherDayDay: false
     }
   },
   computed: {
@@ -548,6 +585,37 @@ export default {
     },
     timetableItem(item) {
       this.dialog = true
+    },
+    getTimeTable(item) {
+      const url = '/api/timetable?train_code=' + item.train_num
+      fetch(url)
+        .then((res) => res.json())
+        .then((res) => {
+          const { result } = res
+          this.timeTable = result
+        })
+        .catch((err) => {
+          // eslint-disable-next-line no-console
+          console.log(err)
+        })
+        .finally()
+      this.curDay = 0
+      this.timeTableDialog = true
+      this.searchTimeTableNo = item.train_num
+      return this.timeTable
+    },
+    anotherDay(item) {
+      // console.log(item)
+      if (item.arr_day !== this.curDay) {
+        this.curDay = item.arr_day
+        return true
+      }
+      return false
+    },
+    gao(item) {
+      this.anotherDayDay = this.anotherDay(item)
+      // console.log(this.anotherDayDay)
+      return item.station
     }
   }
 }

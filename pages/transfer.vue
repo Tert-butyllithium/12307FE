@@ -113,6 +113,16 @@
               item-key="id"
               class="elevation-1"
             >
+              <template v-slot:item.first_train="{ item }">
+                <div @click="getTimeTable(item.first_train)">
+                  <u>{{ item.first_train }} </u>
+                </div>
+              </template>
+              <template v-slot:item.second_train="{ item }">
+                <div @click="getTimeTable(item.second_train)">
+                  <u>{{ item.second_train }} </u>
+                </div>
+              </template>
               <template v-slot:item.actions="{ item }">
                 <v-icon small class="mr-2" @click="buyItem(item)">
                   mdi-currency-usd
@@ -120,6 +130,32 @@
               </template>
             </v-data-table>
           </v-expand-transition>
+          <v-dialog v-model="timeTableDialog" max-width="290">
+            <v-card>
+              <v-card-title class="headline"
+                >Time Table for {{ searchTimeTableNo }}</v-card-title
+              >
+              <v-simple-table dense>
+                <template v-slot:default>
+                  <thead>
+                    <tr>
+                      <th class="text-left">Station</th>
+                      <th class="text-left">Arr.T</th>
+                      <th class="text-left">Dep.T</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in timeTable" :key="item.station">
+                      <td>{{ item.station }}</td>
+                      <td>{{ item.arr_time }}</td>
+                      <td>{{ item.dep_time }}</td>
+                    </tr>
+                    <!-- <v-system-bar v-if="anotherDayDay"></v-system-bar> -->
+                  </tbody>
+                </template>
+              </v-simple-table>
+            </v-card>
+          </v-dialog>
         </v-card>
       </blockquote>
     </v-flex>
@@ -266,7 +302,10 @@ export default {
           text: 'Expand',
           value: 2
         }
-      ]
+      ],
+      timeTable: null,
+      timeTableDialog: false,
+      searchTimeTableNo: null
     }
   },
   computed: {
@@ -398,6 +437,22 @@ export default {
       const hb = Number(bb[0])
       const mb = Number(bb[1])
       return ha * 60 + ma + t < hb * 60 + mb
+    },
+    getTimeTable(trainNum) {
+      const url = '/api/timetable?train_code=' + trainNum
+      fetch(url)
+        .then((res) => res.json())
+        .then((res) => {
+          const { result } = res
+          this.timeTable = result
+        })
+        .catch((err) => {
+          // eslint-disable-next-line no-console
+          console.log(err)
+        })
+        .finally()
+      this.timeTableDialog = true
+      this.searchTimeTableNo = trainNum
     }
   }
 }
